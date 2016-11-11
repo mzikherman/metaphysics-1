@@ -88,6 +88,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns the partner_city if one is set', () => {
       showData.partner_city = 'Quonochontaug';
       showData.location = null;
@@ -128,6 +129,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns solo when only one artist in a ref show', () => {
       showData.artists = [];
       showData.artists_without_artworks = [{ id: 'foo' }];
@@ -147,6 +149,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns group when more than one artist in a ref show', () => {
       showData.artists = [];
       showData.artists_without_artworks = [{ id: 'foo' }, { id: 'bar' }];
@@ -166,6 +169,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns solo when only one artist', () => {
       showData.artists = [{ id: 'foo' }];
       showData.artists_without_artworks = null;
@@ -185,6 +189,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns group when more than one artist in a regular show', () => {
       showData.artists = [{ id: 'foo' }, { id: 'bar' }];
       showData.artists_without_artworks = null;
@@ -204,6 +209,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns group when only one artist but the show is flagged as group', () => {
       showData.artists = [{ id: 'foo' }];
       showData.artists_without_artworks = null;
@@ -245,6 +251,7 @@ describe('Show type', () => {
           });
         });
     });
+
     it('returns null for a reference show', () => {
       const query = `
         {
