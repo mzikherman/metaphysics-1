@@ -1,14 +1,14 @@
-import Artwork from "../artwork"
-import Image from "../image/index"
-import Profile from "../profile"
-import SaleArtwork from "../sale_artwork"
-import cached from "../fields/cached"
-import date from "../fields/date"
-import gravity from "../../lib/loaders/gravity"
+import Artwork from "schema/artwork"
+import Image from "schema/image/index"
+import Profile from "schema/profile"
+import SaleArtwork from "schema/sale_artwork"
+import cached from "schema/fields/cached"
+import date from "schema/fields/date"
+import gravity from "lib/loaders/gravity"
 import moment from "moment"
-import { GravityIDFields } from "../object_identification"
-import { amount } from "../fields/money"
-import { exclude } from "../../lib/helpers"
+import { GravityIDFields } from "schema/object_identification"
+import { amount } from "schema/fields/money"
+import { exclude } from "lib/helpers"
 import { map } from "lodash"
 
 import {
@@ -167,6 +167,10 @@ const SaleType = new GraphQLObjectType({
       is_preview: {
         type: GraphQLBoolean,
         resolve: ({ auction_state }) => auction_state === "preview",
+      },
+      is_registration_closed: {
+        type: GraphQLBoolean,
+        resolve: ({ registration_ends_at }) => moment().isAfter(registration_ends_at),
       },
       is_with_buyers_premium: {
         type: GraphQLBoolean,

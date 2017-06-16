@@ -1,8 +1,8 @@
 import { has, map } from "lodash"
-import Artist from "../artist"
-import gravity from "../../lib/loaders/gravity"
-import { total } from "../../lib/loaders/total"
-import { NodeInterface } from "../object_identification"
+import Artist from "schema/artist"
+import gravity from "lib/loaders/gravity"
+import { total } from "lib/loaders/total"
+import { NodeInterface } from "schema/object_identification"
 import { toGlobalId } from "graphql-relay"
 import { GraphQLEnumType, GraphQLID, GraphQLNonNull, GraphQLList, GraphQLObjectType, GraphQLString } from "graphql"
 
@@ -14,12 +14,8 @@ function fetchArtists(path) {
 }
 
 // This object is used for both the `key` argument enum and to do fetching.
+// The order of the artists should be 1. suggested, 2. trending, 3. popular
 export const HomePageArtistModuleTypes = {
-  POPULAR: {
-    description: "The most searched for artists.",
-    display: () => Promise.resolve(true),
-    resolve: fetchArtists("artists/popular"),
-  },
   SUGGESTED: {
     description: "Artists recommended for the specific user.",
     display: (accessToken, userID) => {
@@ -47,6 +43,11 @@ export const HomePageArtistModuleTypes = {
     description: "The trending artists.",
     display: () => Promise.resolve(true),
     resolve: fetchArtists("artists/trending"),
+  },
+  POPULAR: {
+    description: "The most searched for artists.",
+    display: () => Promise.resolve(true),
+    resolve: fetchArtists("artists/popular"),
   },
 }
 

@@ -1,5 +1,5 @@
-import schema from "../../../schema"
-import { runAuthenticatedQuery } from "../../utils"
+import schema from "schema"
+import { runAuthenticatedQuery } from "test/utils"
 
 describe("UpdateConversation", () => {
   const gravity = sinon.stub()
@@ -26,7 +26,9 @@ describe("UpdateConversation", () => {
           conversations {
             id
             initial_message
-            from_email
+            from {
+              email
+            }
           }
         }
       }
@@ -43,7 +45,9 @@ describe("UpdateConversation", () => {
         {
           id: "3",
           initial_message: "omg im sooo interested",
-          from_email: "percy@cat.com",
+          from: {
+            email: "percy@cat.com",
+          },
         },
       ],
     }

@@ -1,5 +1,5 @@
-import schema from "../../../schema"
-import { runQuery } from "../../utils"
+import schema from "schema"
+import { runQuery } from "test/utils"
 
 describe("Gene", () => {
   describe("For just querying the gene artworks", () => {
@@ -125,6 +125,81 @@ describe("Gene", () => {
         expect(data).toEqual({
           gene: {
             artworks_connection: {
+              pageInfo: {
+                hasNextPage: true,
+              },
+            },
+          },
+        })
+      })
+    })
+  })
+
+  describe("arist_connection", () => {
+    const Gene = schema.__get__("Gene")
+
+    beforeEach(() => {
+      Gene.__ResetDependency__("gravity")
+      const gravity = sinon.stub()
+      gravity.with = sinon.stub().returns(gravity)
+      const gene = {
+        id: "500-1000-ce",
+        browseable: true,
+        family: "",
+        counts: { artists: 20 },
+      }
+      gravity
+        // Gene
+        .onCall(0)
+        .returns(Promise.resolve(Object.assign({}, gene)))
+        // 20 artworks
+        .onCall(1)
+        .returns(Promise.resolve(Array(20)))
+
+      Gene.__Rewire__("gravity", gravity)
+    })
+    it("does not have a next page when the requested amount exceeds the count", () => {
+      const query = `
+        {
+          gene(id: "500-1000-ce") {
+            artists_connection(first: 40) {
+              pageInfo {
+                hasNextPage
+              }
+            }
+          }
+        }
+      `
+
+      return runQuery(query).then(data => {
+        expect(data).toEqual({
+          gene: {
+            artists_connection: {
+              pageInfo: {
+                hasNextPage: false,
+              },
+            },
+          },
+        })
+      })
+    })
+    it("has a next page when the amount requested is less than the count", () => {
+      const query = `
+        {
+          gene(id: "500-1000-ce") {
+            artists_connection(first: 10) {
+              pageInfo {
+                hasNextPage
+              }
+            }
+          }
+        }
+      `
+
+      return runQuery(query).then(data => {
+        expect(data).toEqual({
+          gene: {
+            artists_connection: {
               pageInfo: {
                 hasNextPage: true,
               },

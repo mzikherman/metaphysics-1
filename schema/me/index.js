@@ -1,5 +1,5 @@
-import date from "../fields/date"
-import gravity from "../../lib/loaders/gravity"
+import date from "schema/fields/date"
+import gravity from "lib/loaders/gravity"
 import Bidders from "./bidders"
 import BidderStatus from "./bidder_status"
 import BidderPositions from "./bidder_positions"
@@ -10,12 +10,13 @@ import SuggestedArtists from "./suggested_artists"
 import FollowArtists from "./follow_artists"
 import FollowedArtists from "./followed_artists"
 import Notifications from "./notifications"
+import Conversation from "./conversation"
 import Conversations from "./conversations"
 import CollectorProfile from "./collector_profile"
 import ArtworkInquiries from "./artwork_inquiries"
 import SavedArtworks from "./saved_artworks"
-import { IDFields, NodeInterface } from "../object_identification"
-import { queriedForFieldsOtherThanBlacklisted } from "../../lib/helpers"
+import { IDFields, NodeInterface } from "schema/object_identification"
+import { queriedForFieldsOtherThanBlacklisted } from "lib/helpers"
 import { GraphQLString, GraphQLObjectType } from "graphql"
 import { has } from "lodash"
 
@@ -30,6 +31,7 @@ const Me = new GraphQLObjectType({
     bidder_status: BidderStatus,
     bidder_positions: BidderPositions,
     collector_profile: CollectorProfile,
+    conversation: Conversation,
     conversations: Conversations,
     created_at: date,
     email: {
@@ -72,6 +74,7 @@ export default {
       "lot_standing",
       "lot_standings",
       "sale_registrations",
+      "conversation",
       "conversations",
       "collector_profile",
       "artwork_inquiries_connection",

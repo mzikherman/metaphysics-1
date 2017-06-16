@@ -1,7 +1,6 @@
 import { map } from "lodash"
-
-import schema from "../../../schema"
-import { runQuery, runAuthenticatedQuery } from "../../utils"
+import schema from "schema"
+import { runQuery, runAuthenticatedQuery } from "test/utils"
 
 describe("HomePageArtistModules", () => {
   describe("concerning display", () => {
@@ -50,14 +49,14 @@ describe("HomePageArtistModules", () => {
 
         return runAuthenticatedQuery(query).then(({ home_page }) => {
           const keys = map(home_page.artist_modules, "key")
-          expect(keys).toEqual(["POPULAR", "SUGGESTED", "TRENDING"])
+          expect(keys).toEqual(["SUGGESTED", "TRENDING", "POPULAR"])
         })
       })
 
       it("only shows the trending and popular artists modules if there are no suggestions", () => {
         return runAuthenticatedQuery(query).then(({ home_page }) => {
           const keys = map(home_page.artist_modules, "key")
-          expect(keys).toEqual(["POPULAR", "TRENDING"])
+          expect(keys).toEqual(["TRENDING", "POPULAR"])
         })
       })
     })
@@ -66,7 +65,7 @@ describe("HomePageArtistModules", () => {
       it("only shows the trending and popular artists modules", () => {
         return runQuery(query).then(({ home_page }) => {
           const keys = map(home_page.artist_modules, "key")
-          expect(keys).toEqual(["POPULAR", "TRENDING"])
+          expect(keys).toEqual(["TRENDING", "POPULAR"])
         })
       })
     })
