@@ -1,9 +1,12 @@
-import date from "schema/fields/date"
 import impulse from "lib/loaders/impulse"
 import gravity from "lib/loaders/gravity"
+import date from "schema/fields/date"
 import { get } from "lodash"
 import { queryContainsField } from "lib/helpers"
 import { GraphQLBoolean, GraphQLList, GraphQLObjectType, GraphQLString, GraphQLNonNull, GraphQLEnumType } from "graphql"
+import { pageable } from "relay-cursor-paging"
+import { connectionFromArraySlice, connectionDefinitions } from "graphql-relay"
+import { parseRelayOptions } from "lib/helpers"
 import { ArtworkType } from "schema/artwork"
 const { IMPULSE_APPLICATION_ID } = process.env
 
@@ -50,12 +53,15 @@ export const MessageType = new GraphQLObjectType({
       description: "A snippet of the full message",
       type: new GraphQLNonNull(GraphQLString),
     },
+    radiation_message_id: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
   },
 })
 
-export const ConversationParticipantType = new GraphQLObjectType({
-  name: "ConversationParticipantType",
-  description: "A participant in a conversation.",
+export const ConversationInitiatorType = new GraphQLObjectType({
+  name: "ConversationInitiatorType",
+  description: "The participant who started the conversation, currently always a User",
   fields: {
     id: {
       description: "Impulse id.",
@@ -74,6 +80,28 @@ export const ConversationParticipantType = new GraphQLObjectType({
   },
 })
 
+export const ConversationResponderType = new GraphQLObjectType({
+  name: "ConversationResponderType",
+  description: "The participant responding to the conversation, currently always a Partner",
+  fields: {
+    id: {
+      description: "Impulse id.",
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    type: {
+      description: "The type of participant, e.g. Partner or User",
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    name: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    reply_to_impulse_ids: {
+      type: new GraphQLNonNull(new GraphQLList(GraphQLString)),
+      description: "An array of Impulse IDs that correspond to all email addresses that messages should be sent to",
+    },
+  },
+})
+
 export const ConversationFields = {
   id: {
     description: "Impulse id.",
@@ -85,7 +113,7 @@ export const ConversationFields = {
   },
   from: {
     description: "The participant who initiated the conversation",
-    type: new GraphQLNonNull(ConversationParticipantType),
+    type: new GraphQLNonNull(ConversationInitiatorType),
     resolve: conversation => {
       return {
         id: conversation.from_id,
@@ -96,14 +124,14 @@ export const ConversationFields = {
     },
   },
   to: {
-    description: "The participant responding to the conversation",
-    type: new GraphQLNonNull(ConversationParticipantType),
+    description: "The participant(s) responding to the conversation",
+    type: new GraphQLNonNull(ConversationResponderType),
     resolve: conversation => {
       return {
         id: conversation.to_id,
         type: conversation.to_type,
         name: conversation.to_name,
-        email: conversation.to_email,
+        reply_to_impulse_ids: conversation.to,
       }
     },
   },
@@ -142,7 +170,16 @@ export const ConversationFields = {
   },
 
   messages: {
-    type: new GraphQLList(MessageType),
+    type: connectionDefinitions({ nodeType: MessageType }).connectionType,
+    description: "A connection for all messages in a single conversation",
+    args: pageable(),
+    resolve: ({ messages }, options) => {
+      const impulseOptions = parseRelayOptions(options)
+      return connectionFromArraySlice(messages, options, {
+        arrayLength: messages.length,
+        sliceStart: impulseOptions.offset,
+      })
+    },
   },
 }
 

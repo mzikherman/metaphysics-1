@@ -70,11 +70,16 @@ describe("Me", () => {
             conversation(id: "420") {
               id
               initial_message
-              from {
-                email
+              to {
+                reply_to_impulse_ids
+                name
               }
-              messages {
-                snippet
+              messages(first: 10) {
+                edges {
+                  node {
+                    snippet
+                  }
+                }
               }
             }
           }
@@ -84,26 +89,28 @@ describe("Me", () => {
       const conversation1 = {
         id: "420",
         initial_message: "10/10 would buy",
-        from_email: "fancy_german_person@posteo.de",
-        messages: [
-          {
-            snippet: "Take my money!",
-          },
-        ],
+        to: ["1234567"],
+        to_name: "Some Gallery",
+        messages: [{ snippet: "Take my money!" }],
       }
 
       const expectedConversationData = {
         conversation: {
           id: "420",
           initial_message: "10/10 would buy",
-          from: {
-            email: "fancy_german_person@posteo.de",
+          to: {
+            name: "Some Gallery",
+            reply_to_impulse_ids: ["1234567"],
           },
-          messages: [
-            {
-              snippet: "Take my money!",
-            },
-          ],
+          messages: {
+            edges: [
+              {
+                node: {
+                  snippet: "Take my money!",
+                },
+              },
+            ],
+          },
         },
       }
 
