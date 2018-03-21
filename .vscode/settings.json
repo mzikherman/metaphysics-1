@@ -14,6 +14,9 @@
     "**/.git": true,
     "**/build": true
   },
+  "search.exclude": {
+    "**/node_modules": false
+  },
   "path-intellisense.mappings": {
     "/": "${workspaceRoot}",
     "lib": "${workspaceRoot}/lib",
