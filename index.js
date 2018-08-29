@@ -8,6 +8,7 @@ import { info, error } from "./src/lib/loggers"
 import config from "config"
 import cache from "lib/cache"
 import { init as initTracer } from "lib/tracer"
+import { IpFilter as ipfilter, IpDeniedError } from "express-ipfilter"
 
 const {
   ENABLE_ASYNC_STACK_TRACES,
@@ -15,6 +16,7 @@ const {
   GRAVITY_API_URL,
   GRAVITY_ID,
   GRAVITY_SECRET,
+  IP_BLACKLIST,
   NODE_ENV,
   PORT,
   PRODUCTION_ENV,
@@ -70,6 +72,16 @@ function bootApp() {
     app.set("trust proxy", 1)
   }
 
+  if (IP_BLACKLIST) {
+    app.use(
+      ipfilter(IP_BLACKLIST.split(","), {
+        allowedHeaders: ["x-forwarded-for"],
+        log: false,
+        mode: "deny",
+      })
+    )
+  }
+
   app.use(bodyParser.json())
 
   app.get("/favicon.ico", (_req, res) => {
@@ -108,6 +120,14 @@ function bootApp() {
       info(`[Metaphysics] Listening on http://localhost:${port}`)
     )
   )
+
+  // General error handler, can be separated out into
+  // a separate file or middleware as needed.
+  app.use((err, req, res, next) => {
+    if (err instanceof IpDeniedError) {
+      return res.status(401).end()
+    }
+  })
 }
 
 process.on("SIGTERM", gracefulExit)
