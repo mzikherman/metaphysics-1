@@ -1,6 +1,6 @@
 import RateLimit from "express-rate-limit"
 import MemcachedStore from "rate-limit-memcached"
-import { client } from "./cache"
+import client from "./cache"
 import { Request } from "express"
 import config from "../config"
 

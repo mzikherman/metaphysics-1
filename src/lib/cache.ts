@@ -133,6 +133,76 @@ function _get<T>(key) {
   })
 }
 
+function _increment<T>(key, amount) {
+  return new Promise<T>((resolve, reject) => {
+    let timeoutId: NodeJS.Timer | null = setTimeout(() => {
+      timeoutId = null
+      const err = new Error(`[Cache#increment] Timeout for key ${key}`)
+      statsClient.increment("cache.timeout")
+      error(err)
+      reject(err)
+    }, CACHE_RETRIEVAL_TIMEOUT_MS)
+
+    const start = Date.now()
+    client.increment(key, amount, (err, data) => {
+      const time = Date.now() - start
+      if (time > CACHE_QUERY_LOGGING_THRESHOLD_MS) {
+        error(
+          `[Cache#increment] Slow read of ${time}ms for key ${cacheKey(key)}`
+        )
+        statsClient.timing("cache.slow_read", time)
+      }
+
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      } else {
+        // timed out and already rejected promise, no need to continue
+        return
+      }
+
+      if (err) {
+        error(err)
+        reject(err)
+      } else {
+        resolve(JSON.parse(data.toString()))
+      }
+    })
+  })
+}
+
+async function _decrement<T>(key, amount) {
+  return await new Promise<T>((resolve, reject) => {
+    let timeoutId: NodeJS.Timer | null = setTimeout(() => {
+      timeoutId = null
+      const err = new Error(`[Cache#decrement] Timeout for key ${key}`)
+      error(err)
+      reject(err)
+    }, CACHE_RETRIEVAL_TIMEOUT_MS)
+
+    const start = Date.now()
+    client.decrement(key, amount, (err, data) => {
+      const time = Date.now() - start
+      if (time > CACHE_QUERY_LOGGING_THRESHOLD_MS) {
+        error(`[Cache#decrement] Slow read of ${time}ms for key ${key}`)
+      }
+
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      } else {
+        // timed out and already rejected promise, no need to continue
+        return
+      }
+
+      if (err) {
+        error(err)
+        reject(err)
+      } else {
+        resolve(JSON.parse(data.toString()))
+      }
+    })
+  })
+}
+
 export interface CacheOptions {
   cacheTtlInSeconds?: number
 }
@@ -185,6 +255,17 @@ const _delete = key =>
   )
 
 export default {
+  decrement: <T = any>(key: string, amount: number) => {
+    return _decrement<T>(key, amount)
+  },
+  increment: async <T = any>(key: string, amount: number, cb: any) => {
+    try {
+      const value = await _increment<T>(key, amount)
+      cb(undefined, value)
+    } catch (e) {
+      cb(e, undefined)
+    }
+  },
   get: <T = any>(key: string) => {
     return cacheTracer.get(_get<T>(key))
   },
